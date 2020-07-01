@@ -59,6 +59,12 @@ export class TimeEntryResource extends HalResource {
     return state.value!;
   }
 
+  public propertySchema(property:string, schemaOverride?:SchemaResource) {
+    let schema = schemaOverride || this.schema;
+
+    return schema[property];
+  }
+
   public get hasOverriddenSchema():boolean {
     return this.overriddenSchema != null;
   }
