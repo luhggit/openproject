@@ -84,7 +84,7 @@ module API
                   attachment.set_digest local_file
                   attachment.save!
                 ensure
-                  local_file.unlink
+                  File.unlink(local_file.path) if File.exist?(local_file.path)
                 end
 
                 ::API::V3::Attachments::AttachmentRepresenter.new(attachment, current_user: current_user)
