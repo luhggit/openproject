@@ -119,6 +119,12 @@ module API
           }
         end
 
+        link :completeUpload do
+          {
+            href: "/api/v3/attachments/#{attachment.id}/uploaded"
+          }
+        end
+
         property :id
         property :file_name,
                  getter: ->(*) { filename }
