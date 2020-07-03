@@ -1,3 +1,5 @@
+#-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) 2012-2020 the OpenProject GmbH
@@ -26,34 +28,10 @@
 # See docs/COPYRIGHT.rdoc for more details.
 #++
 
-require 'fog/aws'
-require 'carrierwave'
-require 'carrierwave/storage/fog'
+class Attachments::FinishDirectUploadJob < ApplicationJob
+  queue_with_priority :high
 
-module CarrierWave
-  module Configuration
-    def self.configure_fog!(credentials: OpenProject::Configuration.fog_credentials,
-                            directory: OpenProject::Configuration.fog_directory,
-                            public: false)
+  def perform(attachment_id)
 
-      # Ensure that the provider AWS is uppercased
-      provider = credentials[:provider] || 'AWS'
-      if [:aws, 'aws'].include? provider
-        provider = 'AWS'
-      end
-
-      CarrierWave.configure do |config|
-        config.fog_provider    = 'fog/aws'
-        config.fog_credentials = { provider: provider }.merge(credentials)
-        config.fog_directory   = directory
-        config.fog_public      = public
-
-        config.use_action_status = true
-      end
-    end
   end
-end
-
-unless OpenProject::Configuration.fog_credentials.empty?
-  CarrierWave::Configuration.configure_fog!
 end

@@ -54,6 +54,10 @@ module OpenProject
         attachments_storage == :file
       end
 
+      def remote_storage?
+        attachments_storage == :fog
+      end
+
       def attachments_storage_path
         Rails.root.join(self['attachments_storage_path'] || 'files')
       end

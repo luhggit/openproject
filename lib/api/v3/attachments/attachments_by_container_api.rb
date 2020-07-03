@@ -63,6 +63,19 @@ module API
             metadata
           end
 
+          def parse_and_prepare
+            metadata = parse_metadata params[:metadata]
+
+            unless metadata
+              raise ::API::Errors::InvalidRequestBody.new(I18n.t('api_v3.errors.multipart_body_error'))
+            end
+
+            a = Attachment.create container: container, author: current_user, content_type: "application/octet-stream"
+            a.update_column :file, metadata.file_name
+
+            a.reload
+          end
+
           def parse_and_create
             metadata = parse_metadata params[:metadata]
             file = params[:file]
@@ -133,6 +146,14 @@ module API
 
             ::API::V3::Attachments::AttachmentRepresenter.new(parse_and_create,
                                                               current_user: current_user)
+          end
+        end
+
+        def self.prepare
+          -> do
+            raise API::Errors::Unauthorized if Redmine::Acts::Attachable.attachables.none?(&:attachments_addable?)
+
+            ::API::V3::Attachments::AttachmentUploadRepresenter.new(parse_and_prepare, current_user: current_user)
           end
         end
       end

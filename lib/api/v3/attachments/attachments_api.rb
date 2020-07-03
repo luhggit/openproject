@@ -70,6 +70,26 @@ module API
                 respond_with_attachment @attachment, cache_seconds: 604799
               end
             end
+
+            namespace :uploaded do
+              get do
+                attachment = Attachment.pending_direct_uploads.where(id: params[:id]).first!
+                local_file = attachment.file.local_file
+
+                raise API::Errors::NotFound if local_file.nil?
+
+                begin
+                  attachment.set_file_size local_file
+                  attachment.set_content_type local_file
+                  attachment.set_digest local_file
+                  attachment.save!
+                ensure
+                  local_file.unlink
+                end
+
+                ::API::V3::Attachments::AttachmentRepresenter.new(attachment, current_user: current_user)
+              end
+            end
           end
         end
       end

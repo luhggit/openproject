@@ -43,6 +43,28 @@ module API
             }
           end
 
+          if OpenProject::Configuration.remote_storage?
+            link :prepareAttachment,
+                 cache_if: -> do
+                   represented.attachments_addable?(current_user)
+                 end do
+              {
+                href: attachments_by_resource + '/prepare',
+                method: :post
+              }
+            end
+          else
+            link :addAttachment,
+                 cache_if: -> do
+                   represented.attachments_addable?(current_user)
+                 end do
+              {
+                href: attachments_by_resource,
+                method: :post
+              }
+            end
+          end
+
           link :addAttachment,
                cache_if: -> do
                  represented.attachments_addable?(current_user)

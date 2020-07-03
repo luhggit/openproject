@@ -21,7 +21,7 @@ SecureHeaders::Configuration.default do |config|
   frame_src << OpenProject::Configuration[:security_badge_url]
 
   # Default src
-  default_src = %w('self')
+  default_src = %w('self' openproject-edge-com-data.s3.amazonaws.com)
 
   # Allow requests to CLI in dev mode
   connect_src = default_src
@@ -56,7 +56,7 @@ SecureHeaders::Configuration.default do |config|
     # Allow fonts from self, asset host, or DATA uri
     font_src: assets_src + %w(data:),
     # Form targets can only be self
-    form_action: %w('self'),
+    form_action: %w('self' openproject-edge-com-data.s3.amazonaws.com),
     # Allow iframe from vimeo (welcome video)
     frame_src: frame_src + %w('self'),
     frame_ancestors: %w('self'),

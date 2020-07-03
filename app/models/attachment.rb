@@ -251,6 +251,10 @@ class Attachment < ApplicationRecord
     end
   end
 
+  def self.pending_direct_uploads
+    where(filesize: 0, digest: "")
+  end
+
   private
 
   def schedule_cleanup_uncontainered_job
