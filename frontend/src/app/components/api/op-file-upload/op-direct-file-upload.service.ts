@@ -27,12 +27,17 @@
 //++
 
 import {Injectable} from "@angular/core";
-import {HttpClient, HttpEvent, HttpEventType, HttpResponse} from "@angular/common/http";
+import {HttpEvent, HttpResponse} from "@angular/common/http";
 import {HalResource} from "core-app/modules/hal/resources/hal-resource";
-import {Observable, of, from} from "rxjs";
-import {filter, map, share, switchMap, mergeMap} from "rxjs/operators";
-import {HalResourceService} from "core-app/modules/hal/services/hal-resource.service";
-import { UploadFile, UploadResult, MappedUploadResult, UploadInProgress, OpenProjectFileUploadService, UploadBlob } from './op-file-upload.service';
+import {from, Observable, of} from "rxjs";
+import {share, switchMap} from "rxjs/operators";
+import {OpenProjectFileUploadService, UploadBlob, UploadFile, UploadInProgress} from './op-file-upload.service';
+
+interface PrepareUploadResult {
+  url:string;
+  form:FormData;
+  response:any;
+}
 
 @Injectable()
 export class OpenProjectDirectFileUploadService extends OpenProjectFileUploadService {
@@ -42,7 +47,7 @@ export class OpenProjectDirectFileUploadService extends OpenProjectFileUploadSer
    * @param {UploadFile} file
    * @param {string} method
    */
-  public uploadSingle(url:string, file:UploadFile|UploadBlob, method:string = 'post', responseType:'text'|'json' = 'json') {
+  public uploadSingle(url:string, file:UploadFile|UploadBlob, method:string = 'post', responseType:'text'|'json' = 'text') {
     const observable = from(this.getDirectUploadFormFrom(url, file))
       .pipe(
         switchMap(this.uploadToExternal(file, method, responseType)),
@@ -52,7 +57,7 @@ export class OpenProjectDirectFileUploadService extends OpenProjectFileUploadSer
     return [file, observable] as UploadInProgress;
   }
 
-  private uploadToExternal(file: UploadFile | UploadBlob, method: string, responseType: string): (value: { url: string; form: FormData; response: Object; }, index: number) => Observable<HttpEvent<HalResource>> {
+  private uploadToExternal(file:UploadFile|UploadBlob, method:string, responseType:string):(result:PrepareUploadResult) => Observable<HttpEvent<unknown>> {
     return result => {
       result.form.append('file', file, file.customName || file.name);
 
@@ -73,17 +78,29 @@ export class OpenProjectDirectFileUploadService extends OpenProjectFileUploadSer
             reportProgress: true
           }
         )
-        .pipe(switchMap(this.finishUpload()));
+        .pipe(switchMap(this.finishUpload(result)));
     };
   }
 
-  private finishUpload(): (value: { url: string; form: FormData; response: Object; }, index: number) => Observable<HttpEvent<HalResource>> {
-    return result => {
-      if ()
+  private finishUpload(result:PrepareUploadResult):(result:HttpEvent<unknown>) => Observable<HttpEvent<unknown>> {
+    return event => {
+      if (event instanceof HttpResponse) {
+        return this
+          .http
+          .get(
+            result.response._links.completeUpload.href,
+            {
+              observe: 'response'
+            }
+          );
+      }
+
+      // Return as new observable due to switchMap
+      return of(event);
     };
   }
 
-  public getDirectUploadFormFrom(url:string, file:UploadFile|UploadBlob):Promise<{url:string,form:FormData,response:Object}> {
+  public getDirectUploadFormFrom(url:string, file:UploadFile|UploadBlob):Promise<PrepareUploadResult> {
     const formData = new FormData();
     const metadata = {
       description: file.description,
@@ -118,7 +135,6 @@ export class OpenProjectDirectFileUploadService extends OpenProjectFileUploadSer
         return { url: res._links.addAttachment.href, form: form, response: res };
       })
       .catch((err) => {
-        debugger;
         console.log(err);
 
         return new FormData();
