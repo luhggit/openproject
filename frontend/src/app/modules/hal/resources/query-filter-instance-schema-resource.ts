@@ -84,7 +84,7 @@ export class QueryFilterInstanceSchemaResource extends SchemaResource {
         schema: this.$source._links.self,
         operator: operator.$source._links.self
       }
-    }
+    };
 
     if (this.definesAllowedValues()) {
       source._links['values'] = [];
@@ -94,7 +94,7 @@ export class QueryFilterInstanceSchemaResource extends SchemaResource {
 
     let newFilter = new QueryFilterInstanceResource(this.injector, source, true, this.halInitializer, 'QueryFilterInstance');
 
-    newFilter.schema = this;
+    newFilter.overriddenSchema = this;
 
     return newFilter;
   }

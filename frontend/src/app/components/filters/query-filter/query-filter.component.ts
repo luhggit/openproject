@@ -86,7 +86,7 @@ export class QueryFilterComponent implements OnInit {
 
   ngOnInit() {
     this.eeShowBanners = this.bannerService.eeShowBanners;
-    this.availableOperators = this.filter.schema.availableOperators;
+    this.availableOperators = this.filter.overriddenSchema!.availableOperators;
     this.showValuesInput = this.filter.currentSchema!.isValueRequired();
   }
 }

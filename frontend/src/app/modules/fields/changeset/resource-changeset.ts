@@ -310,7 +310,7 @@ export class ResourceChangeset<T extends HalResource|{ [key:string]:unknown; } =
    * and contains available values.
    */
   public get schema():SchemaResource {
-    return this.form$.getValueOr(this.pristineResource).schema;
+    return this.form$.getValueOr(this.pristineResource).schema as SchemaResource;
   }
 
   public propertySchema(property:string) {

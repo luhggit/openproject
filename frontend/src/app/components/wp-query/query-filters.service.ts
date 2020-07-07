@@ -23,7 +23,7 @@ export class QueryFiltersService {
    */
   public mapSchemasIntoFilters(query:QueryResource, form:QueryFormResource) {
     query.filters.forEach(filter => {
-      filter.schema = this.getFilterSchema(filter, form)!;
+      filter.overriddenSchema = this.getFilterSchema(filter, form)!;
     });
   }
 }

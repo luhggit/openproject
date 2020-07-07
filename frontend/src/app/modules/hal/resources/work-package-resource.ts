@@ -124,7 +124,6 @@ export class WorkPackageBaseResource extends HalResource {
   public activities:CollectionResource;
   public attachments:AttachmentCollectionResource;
 
-  public overriddenSchema:SchemaResource|undefined = undefined;
   @InjectField() I18n:I18nService;
   @InjectField() tates:States;
   @InjectField() wpActivity:WorkPackagesActivityService;
@@ -175,7 +174,7 @@ export class WorkPackageBaseResource extends HalResource {
   }
 
   public get isLeaf():boolean {
-    var children = this.$links.children;
+    let children = this.$links.children;
     return !(children && children.length > 0);
   }
 
@@ -295,27 +294,6 @@ export class WorkPackageBaseResource extends HalResource {
   }
 
   /**
-   * Get the current schema, assuming it is either:
-   * 1. Overridden by the current loaded form
-   * 2. Available as a schema state
-   *
-   * If it is neither, an exception is raised.
-   */
-  public get schema():SchemaResource {
-    if (this.hasOverriddenSchema) {
-      return this.overriddenSchema!;
-    }
-
-    const state = this.schemaCacheService.state(this as any);
-
-    if (!state.hasValue()) {
-      throw `Accessing schema of ${this.id} without it being loaded.`;
-    }
-
-    return state.value!;
-  }
-
-  /**
    * Returns the part of the schema relevant for the provided property.
    * Will look up the associated schema to do so but if the caller decides so, it will also
    * look inside a provided schema.
@@ -336,9 +314,9 @@ export class WorkPackageBaseResource extends HalResource {
       combinedSchema.writable = schema['startDate'].writable || schema['dueDate'].writable || schema['scheduleManually'].writable;
       return combinedSchema;
     } else if (this.isMilestone && (property === 'startDate' || property === 'dueDate')) {
-      return schema['date'];
+      return super.propertySchema('date', schemaOverride);
     } else {
-      return schema[property];
+      return super.propertySchema(property, schemaOverride);
     }
   }
 
@@ -361,10 +339,6 @@ export class WorkPackageBaseResource extends HalResource {
     }
 
     return this.wpCacheService.updateWorkPackage(newValue as any);
-  }
-
-  public get hasOverriddenSchema():boolean {
-    return this.overriddenSchema != null;
   }
 }
 

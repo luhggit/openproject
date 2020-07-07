@@ -335,13 +335,13 @@ export class WorkPackageViewFiltersService extends WorkPackageQueryStateService<
   private loadCurrentFiltersSchemas(filters:QueryFilterInstanceResource[]):Promise<unknown> {
     return Promise.all(filters.map((filter:QueryFilterInstanceResource) => {
       const href = `/api/v3/queries/filter_instance_schemas/${filter.id}`;
-      if (filter.schema) {
-        return filter.schema.$load();
+      if (filter.overriddenSchema) {
+        return filter.overriddenSchema.$load();
       } else {
         return this.states.schemas
           .get(href)
           .valuesPromise()
-          .then(schema => filter.schema = schema as QueryFilterInstanceSchemaResource);
+          .then(schema => filter.overriddenSchema = schema as QueryFilterInstanceSchemaResource);
       }
     }));
   }
