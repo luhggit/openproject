@@ -33,7 +33,7 @@ import {States} from 'core-components/states.service';
 import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
 import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
 import {SchemaResource} from "core-app/modules/hal/resources/schema-resource";
-import {SchemaCacheService, SchemaCacheServiceToken} from "core-components/schemas/schema-cache.service";
+import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
 
 export interface HalResourceClass<T extends HalResource = HalResource> {
   new(injector:Injector,

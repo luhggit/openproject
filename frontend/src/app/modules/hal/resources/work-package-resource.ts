@@ -49,6 +49,7 @@ import {InputState} from "reactivestates";
 import {WorkPackagesActivityService} from "core-components/wp-single-view-tabs/activity-panel/wp-activity.service";
 import {WorkPackageNotificationService} from "core-app/modules/work_packages/notifications/work-package-notification.service";
 import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+import {IFieldSchema} from "core-app/modules/fields/field.base";
 
 export interface WorkPackageResourceEmbedded {
   activities:CollectionResource;
@@ -76,6 +77,7 @@ export interface WorkPackageResourceEmbedded {
   // Only for milestones
   date:string;
   relatedBy:RelationResource|null;
+  scheduleManually:boolean;
 }
 
 export interface WorkPackageResourceLinks extends WorkPackageResourceEmbedded {
@@ -309,15 +311,28 @@ export class WorkPackageBaseResource extends HalResource {
   public propertySchema(property:string, schemaOverride?:SchemaResource) {
     let schema = schemaOverride || this.schema;
 
+    let propertySchema:IFieldSchema;
+
     if (property === 'combinedDate') {
-      let combinedSchema = Object.assign({}, schema['startDate']);
-      combinedSchema.writable = schema['startDate'].writable || schema['dueDate'].writable || schema['scheduleManually'].writable;
-      return combinedSchema;
+      propertySchema = Object.assign({},
+                                     schema['startDate'],
+                                     { writable: schema['startDate'].writable ||
+                                                          schema['dueDate'].writable ||
+                                                          schema['scheduleManually'].writable });
     } else if (this.isMilestone && (property === 'startDate' || property === 'dueDate')) {
-      return super.propertySchema('date', schemaOverride);
+      propertySchema = super.propertySchema('date', schemaOverride);
     } else {
-      return super.propertySchema(property, schemaOverride);
+      propertySchema = super.propertySchema(property, schemaOverride);
     }
+
+    // We cheat the schema here in that we know the date properties to be writable if the
+    // scheduling mode is set to manually. This avoids having to fetch the form again when switching
+    // scheduling mode.
+    //if (['startDate', 'dueDate', 'date'].includes(property) && this.scheduleManually) {
+    //  propertySchema = Object.assign({}, propertySchema, { writable: true });
+    //}
+
+    return propertySchema;
   }
 
   /**
