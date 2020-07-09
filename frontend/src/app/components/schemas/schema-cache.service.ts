@@ -25,14 +25,14 @@
 //
 // See docs/COPYRIGHT.rdoc for more details.
 // ++
-import {InputState, MultiInputState, State} from 'reactivestates';
+import {MultiInputState, State} from 'reactivestates';
 import {States} from '../states.service';
 import {HalResource} from "core-app/modules/hal/resources/hal-resource";
 import {Injectable} from '@angular/core';
 import {SchemaResource} from 'core-app/modules/hal/resources/schema-resource';
 import {HalResourceService} from 'core-app/modules/hal/services/hal-resource.service';
 import {StateCacheService} from "core-components/states/state-cache.service";
-import {SchemaProxy} from "core-app/modules/hal/schemas/schema-proxy";
+import {ISchemaProxy, SchemaProxy} from "core-app/modules/hal/schemas/schema-proxy";
 import {WorkPackageSchemaProxy} from "core-app/modules/hal/schemas/work-package-schema-proxy";
 
 @Injectable()
@@ -54,7 +54,7 @@ export class SchemaCacheService extends StateCacheService<SchemaResource> {
    * @param resource The HalResource for which the schema is to be returned
    * @return The schema for the HalResource
    */
-  of(resource:HalResource):SchemaResource {
+  of(resource:HalResource):ISchemaProxy {
     let schema = this.state(resource).value;
 
     if (!schema) {
@@ -62,12 +62,10 @@ export class SchemaCacheService extends StateCacheService<SchemaResource> {
     }
 
     if (resource._type === 'WorkPackage') {
-      schema = WorkPackageSchemaProxy.create(schema, resource);
+      return WorkPackageSchemaProxy.create(schema, resource);
     } else {
-      schema = SchemaProxy.create(schema, resource);
+      return SchemaProxy.create(schema, resource);
     }
-
-    return schema;
   }
 
   public getSchemaHref(resource:HalResource):string {

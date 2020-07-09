@@ -28,6 +28,13 @@
 
 import {SchemaResource} from "core-app/modules/hal/resources/schema-resource";
 import {HalResource} from "core-app/modules/hal/resources/hal-resource";
+import {IFieldSchema} from "core-app/modules/fields/field.base";
+
+export interface ISchemaProxy extends SchemaResource {
+  ofProperty(property:string):IFieldSchema;
+  isAttributeEditable(property:string):boolean;
+  isEditable:boolean;
+}
 
 export class SchemaProxy implements ProxyHandler<SchemaResource> {
   constructor(protected schema:SchemaResource,
@@ -38,7 +45,7 @@ export class SchemaProxy implements ProxyHandler<SchemaResource> {
     return new Proxy(
       schema,
       new this(schema, resource)
-    ) as SchemaResource;
+    ) as ISchemaProxy;
   }
 
   get(schema:SchemaResource, property:PropertyKey, receiver:any):any {
@@ -75,8 +82,10 @@ export class SchemaProxy implements ProxyHandler<SchemaResource> {
    *
    * @param property the schema part is desired for
    */
-  public ofProperty(property:string) {
-    return this.schema[property];
+  public ofProperty(property:string):IFieldSchema {
+    let propertySchema = this.schema[property];
+
+    return Object.assign({}, propertySchema, { writable: this.isEditable && propertySchema && propertySchema.writable });
   }
 
   /**
@@ -88,8 +97,7 @@ export class SchemaProxy implements ProxyHandler<SchemaResource> {
    * @param property
    */
   public isAttributeEditable(property:string):boolean {
-    const propertySchema = this.ofProperty(property);
-    return this.isEditable && propertySchema && propertySchema.writable;
+    return this.ofProperty(property).writable;
   }
 
   /**

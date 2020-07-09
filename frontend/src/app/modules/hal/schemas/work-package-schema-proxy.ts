@@ -26,32 +26,9 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {IFieldSchema} from "core-app/modules/fields/field.base";
 import {SchemaProxy} from "core-app/modules/hal/schemas/schema-proxy";
 
 export class WorkPackageSchemaProxy extends SchemaProxy {
-  //static create(schema:SchemaResource) {
-  //  return new Proxy(
-  //    schema,
-  //    new WorkPackageSchemaResource(schema)
-  //  ) as SchemaResource;
-  //}
-
-  //get(schema:SchemaResource, property:PropertyKey, receiver:any):any {
-  //  if (property === 'ofProperty') {
-  //    let self = this;
-
-  //    // Returing a Proxy again here so that the call is bound
-  //    // to the WorkPackageSchemaResource instance.
-  //    return new Proxy(this.ofProperty, {
-  //      apply: function(_, __, argumentsList) {
-  //        return self.ofProperty(argumentsList[0]);
-  //      }});
-  //  }
-
-  //  return Reflect.get(schema, property, receiver);
-  //}
-
   /**
    * Returns the part of the schema relevant for the provided property.
    *
@@ -63,21 +40,23 @@ export class WorkPackageSchemaProxy extends SchemaProxy {
    * @param property the schema part is desired for
    */
   public ofProperty(property:string) {
-    let propertySchema:IFieldSchema;
-
     if (property === 'combinedDate') {
-      propertySchema = Object.assign({},
-        this.schema['startDate'],
-        { writable: this.schema['startDate'].writable ||
-            this.schema['dueDate'].writable ||
-            this.schema['scheduleManually'].writable });
-    } else if (this.isMilestone && (property === 'startDate' || property === 'dueDate')) {
-      propertySchema = super.ofProperty('date');
-    } else {
-      propertySchema = super.ofProperty(property);
-    }
+      let propertySchema = super.ofProperty('startDate');
 
-    return propertySchema;
+      propertySchema.writable = propertySchema.writable ||
+        this.isAttributeEditable('dueDate') ||
+        this.isAttributeEditable('scheduleManually');
+
+      return propertySchema;
+    } else if (this.isMilestone && (property === 'startDate' || property === 'dueDate')) {
+      return super.ofProperty('date');
+    } else {
+      return super.ofProperty(property);
+    }
+  }
+
+  public get isReadonly():boolean {
+    return this.resource.status?.isReadonly;
   }
 
   /**
@@ -88,7 +67,7 @@ export class WorkPackageSchemaProxy extends SchemaProxy {
    */
   public isAttributeEditable(property:string):boolean {
     return super.isAttributeEditable(property) &&
-      (!this.schema.isReadonly || property === 'status');
+      (!this.isReadonly || property === 'status');
   }
 
   public get isMilestone():boolean {

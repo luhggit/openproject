@@ -143,10 +143,6 @@ export class WorkPackageBaseResource extends HalResource {
     return ancestors.map((el:WorkPackageResource) => el.id!);
   }
 
-  public get isReadonly():boolean {
-    return this.status && this.status.isReadonly;
-  }
-
   /**
    * Return "<type name>: <subject> (#<id>)" if type and id are known.
    */

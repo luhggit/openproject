@@ -38,6 +38,7 @@ import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixi
 import {concatAll} from "rxjs/operators";
 import {combineLatest} from "rxjs";
 import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
+import {ISchemaProxy, SchemaProxy} from "core-app/modules/hal/schemas/schema-proxy";
 
 @Component({
   selector: 'wp-status-button',
@@ -81,7 +82,7 @@ export class WorkPackageStatusButtonComponent extends UntilDestroyedMixin implem
   }
 
   public get buttonTitle() {
-    if (this.workPackage.isReadonly) {
+    if (this.schema.isReadonly) {
       return this.text.workPackageReadOnly;
     } else if (this.workPackage.isEditable && !this.allowed) {
       return this.text.workPackageStatusBlocked;
@@ -103,6 +104,10 @@ export class WorkPackageStatusButtonComponent extends UntilDestroyedMixin implem
   }
 
   public get allowed() {
-    return this.schemaCache.of(this.workPackage).isAttributeEditable('status');
+    return this.schema.isAttributeEditable('status');
+  }
+
+  private get schema() {
+    return this.schemaCache.of(this.workPackage) as ISchemaProxy;
   }
 }
