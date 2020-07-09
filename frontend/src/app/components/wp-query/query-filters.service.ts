@@ -27,7 +27,9 @@ export class QueryFiltersService {
    */
   public mapSchemasIntoFilters(query:QueryResource, form:QueryFormResource) {
     query.filters.forEach(filter => {
-      this.schemaCache.update(filter, this.getFilterSchema(filter, form)!);
+      let schema = this.getFilterSchema(filter, form)!;
+      filter.$links.schema = schema.$links.self;
+      this.schemaCache.update(filter, schema);
     });
   }
 }

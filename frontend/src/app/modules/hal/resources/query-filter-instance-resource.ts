@@ -30,12 +30,16 @@ import {HalResource} from 'core-app/modules/hal/resources/hal-resource';
 import {QueryFilterResource} from 'core-app/modules/hal/resources/query-filter-resource';
 import {QueryFilterInstanceSchemaResource} from 'core-app/modules/hal/resources/query-filter-instance-schema-resource';
 import {QueryOperatorResource} from 'core-app/modules/hal/resources/query-operator-resource';
+import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
 
 export class QueryFilterInstanceResource extends HalResource {
   public filter:QueryFilterResource;
   public operator:QueryOperatorResource;
   public values:HalResource[]|string[];
   private memoizedCurrentSchemas:{ [key:string]:QueryFilterInstanceSchemaResource } = {};
+
+  @InjectField(SchemaCacheService) schemaCache:SchemaCacheService;
 
   public get id():string {
     return this.filter.id;
