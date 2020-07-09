@@ -43,6 +43,10 @@ export class WorkPackageSchemaProxy extends SchemaProxy {
     if (property === 'combinedDate') {
       let propertySchema = super.ofProperty('startDate');
 
+      if (!propertySchema) {
+        return null;
+      }
+
       propertySchema.writable = propertySchema.writable ||
         this.isAttributeEditable('dueDate') ||
         this.isAttributeEditable('scheduleManually');

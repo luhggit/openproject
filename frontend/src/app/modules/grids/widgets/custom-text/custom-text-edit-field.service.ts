@@ -3,8 +3,9 @@ import {ElementRef, Injector, Injectable} from "@angular/core";
 import {IFieldSchema} from "core-app/modules/fields/field.base";
 import {BehaviorSubject} from "rxjs";
 import {GridWidgetResource} from "core-app/modules/hal/resources/grid-widget-resource";
-import {CustomTextChangeset} from "core-app/modules/grids/widgets/custom-text/custom-text-changeset";
 import {UploadFile} from "core-components/api/op-file-upload/op-file-upload.service";
+import {HalResourceService} from "core-app/modules/hal/services/hal-resource.service";
+import {ResourceChangeset} from "core-app/modules/fields/changeset/resource-changeset";
 
 @Injectable()
 export class CustomTextEditFieldService extends EditFieldHandler {
@@ -15,10 +16,11 @@ export class CustomTextEditFieldService extends EditFieldHandler {
 
   public valueChanged$:BehaviorSubject<string>;
 
-  public changeset:CustomTextChangeset;
+  public changeset:ResourceChangeset;
 
   constructor(protected elementRef:ElementRef,
-              protected injector:Injector) {
+              protected injector:Injector,
+              protected halResource:HalResourceService) {
     super();
   }
 
@@ -29,12 +31,12 @@ export class CustomTextEditFieldService extends EditFieldHandler {
   }
 
   public initialize(value:GridWidgetResource) {
-    this.changeset = new CustomTextChangeset(this.newEditResource(value));
+    this.initializeChangeset(value);
     this.valueChanged$ = new BehaviorSubject(value.options['text'] as string);
   }
 
   public reinitialize(value:GridWidgetResource) {
-    this.changeset = new CustomTextChangeset(this.newEditResource(value));
+    this.initializeChangeset(value);
   }
 
   /**
@@ -121,10 +123,18 @@ export class CustomTextEditFieldService extends EditFieldHandler {
     return false;
   }
 
-  private newEditResource(value:GridWidgetResource) {
-    return { text: value.options.text,
-             getEditorTypeFor: () => 'full',
-             canAddAttachments: value.grid.canAddAttachments,
-             uploadAttachments: (files:UploadFile[]) => value.grid.uploadAttachments(files) };
+  /**
+   * Mimiks having a HalResource for the sake of the Changeset.
+   * @param value
+   */
+  private initializeChangeset(value:GridWidgetResource) {
+    let source = { text: value.options.text,
+                   getEditorTypeFor: () => 'full',
+                   canAddAttachments: value.grid.canAddAttachments,
+                   uploadAttachments: (files:UploadFile[]) => value.grid.uploadAttachments(files) };
+
+    let resource = this.halResource.createHalResource(source, true);
+
+    this.changeset = new ResourceChangeset(resource);
   }
 }

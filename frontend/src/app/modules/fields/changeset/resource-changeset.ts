@@ -8,6 +8,7 @@ import {debugLog} from "core-app/helpers/debug_output";
 import {take} from "rxjs/operators";
 import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
 import { Injector } from '@angular/core';
+import {SchemaProxy} from "core-app/modules/hal/schemas/schema-proxy";
 
 export const PROXY_IDENTIFIER = '__is_changeset_proxy';
 
@@ -21,7 +22,7 @@ export const PROXY_IDENTIFIER = '__is_changeset_proxy';
  * Provides access to:
  *  - The projected resource with all changes applied as properties
  */
-export class ResourceChangeset<T extends HalResource|{ [key:string]:unknown; } = HalResource> {
+export class ResourceChangeset<T extends HalResource = HalResource> {
   /** Maintain a single change set while editing */
   protected changeset = new Changeset();
 
@@ -316,9 +317,9 @@ export class ResourceChangeset<T extends HalResource|{ [key:string]:unknown; } =
    */
   public get schema():SchemaResource {
     if (this.form$.hasValue()) {
-      return this.form$.value!.schema;
+      return SchemaProxy.create(this.form$.value!.schema, this.projectedResource);
     } else {
-      return this.schemaCache.of(this.pristineResource as HalResource);
+      return this.schemaCache.of(this.pristineResource);
     }
   }
 

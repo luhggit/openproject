@@ -82,10 +82,14 @@ export class SchemaProxy implements ProxyHandler<SchemaResource> {
    *
    * @param property the schema part is desired for
    */
-  public ofProperty(property:string):IFieldSchema {
+  public ofProperty(property:string):IFieldSchema|null {
     let propertySchema = this.schema[property];
 
-    return Object.assign({}, propertySchema, { writable: this.isEditable && propertySchema && propertySchema.writable });
+    if (propertySchema) {
+      return Object.assign({}, propertySchema, { writable: this.isEditable && propertySchema && propertySchema.writable });
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -97,7 +101,9 @@ export class SchemaProxy implements ProxyHandler<SchemaResource> {
    * @param property
    */
   public isAttributeEditable(property:string):boolean {
-    return this.ofProperty(property).writable;
+    let propertySchema = this.ofProperty(property);
+
+    return !!propertySchema && propertySchema.writable;
   }
 
   /**
