@@ -32,8 +32,6 @@ import {Injector} from '@angular/core';
 import {States} from 'core-components/states.service';
 import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
 import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
-import {SchemaResource} from "core-app/modules/hal/resources/schema-resource";
-import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
 
 export interface HalResourceClass<T extends HalResource = HalResource> {
   new(injector:Injector,
@@ -65,7 +63,6 @@ export class HalResource {
   public $halType:string;
 
   @InjectField() states:States;
-  @InjectField() protected schemaCacheService:SchemaCacheService;
   @InjectField() I18n:I18nService;
 
   /**
@@ -97,7 +94,6 @@ export class HalResource {
   public $links:any = {};
   public $embedded:any = {};
   public $self:Promise<this>;
-  public overriddenSchema:SchemaResource|undefined = undefined;
 
   public _name:string;
 
@@ -159,69 +155,6 @@ export class HalResource {
 
   public get persisted() {
     return !!(this.id && this.id !== 'new');
-  }
-
-  /**
-   * Return whether the user in general has permission to edit the work package.
-   * This check is required, but not sufficient to check all attribute restrictions.
-   *
-   * Use +isAttributeEditable(property)+ for this case.
-   */
-  public get isEditable() {
-    return this.isNew || !!this.$links.update;
-  }
-
-  /**
-   * Get the current schema, assuming it is either:
-   * 1. Overridden by the current loaded form
-   * 2. Available as a schema state
-   *
-   * If it is neither, an exception is raised.
-   */
-  public get schema():SchemaResource {
-    if (this.hasOverriddenSchema) {
-      return this.overriddenSchema!;
-    }
-
-    const state = this.schemaCacheService.state(this as any);
-
-    if (!state.hasValue()) {
-      throw `Accessing schema of ${this.id} without it being loaded.`;
-    }
-
-    return state.value!;
-  }
-
-
-  /**
-   * Returns the part of the schema relevant for the provided property.
-   * Will look up the associated schema to do so but if the caller decides so, it will also
-   * look inside a provided schema.
-   *
-   * @param property the schema part is desired for
-   * @param schemaOverride a schema overriding the already associated schema.
-   */
-  public propertySchema(property:string, schemaOverride?:SchemaResource) {
-    let schema = schemaOverride || this.schema;
-
-    return schema[property];
-  }
-
-  public get hasOverriddenSchema():boolean {
-    return !!this.overriddenSchema;
-  }
-
-  /**
-   * Return whether the resource is editable with the user's permission
-   * on the given resource package attribute.
-   * In order to be editable, there needs to be an update link on the resource and the schema for
-   * the attribute needs to indicate the writability.
-   *
-   * @param property
-   */
-  public isAttributeEditable(property:string):boolean {
-    const propertySchema = this.propertySchema(property);
-    return this.isEditable && propertySchema && propertySchema.writable;
   }
 
   /**

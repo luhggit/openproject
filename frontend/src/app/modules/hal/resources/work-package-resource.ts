@@ -36,10 +36,8 @@ import {
   OpenProjectFileUploadService,
   UploadFile
 } from 'core-components/api/op-file-upload/op-file-upload.service';
-import {SchemaResource} from 'core-app/modules/hal/resources/schema-resource';
 import {States} from 'core-components/states.service';
 import {WorkPackageCacheService} from 'core-components/work-packages/work-package-cache.service';
-import {SchemaCacheService} from 'core-components/schemas/schema-cache.service';
 import {PathHelperService} from 'core-app/modules/common/path-helper/path-helper.service';
 import {NotificationsService} from 'core-app/modules/common/notifications/notifications.service';
 import {Attachable} from 'core-app/modules/hal/resources/mixins/attachable-mixin';
@@ -49,7 +47,6 @@ import {InputState} from "reactivestates";
 import {WorkPackagesActivityService} from "core-components/wp-single-view-tabs/activity-panel/wp-activity.service";
 import {WorkPackageNotificationService} from "core-app/modules/work_packages/notifications/work-package-notification.service";
 import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
-import {IFieldSchema} from "core-app/modules/fields/field.base";
 
 export interface WorkPackageResourceEmbedded {
   activities:CollectionResource;
@@ -131,7 +128,6 @@ export class WorkPackageBaseResource extends HalResource {
   @InjectField() wpActivity:WorkPackagesActivityService;
   @InjectField() workPackageDmService:WorkPackageDmService;
   @InjectField() wpCacheService:WorkPackageCacheService;
-  @InjectField() schemaCacheService:SchemaCacheService;
   @InjectField() NotificationsService:NotificationsService;
   @InjectField() workPackageNotificationService:WorkPackageNotificationService;
   @InjectField() pathHelper:PathHelperService;
@@ -171,10 +167,6 @@ export class WorkPackageBaseResource extends HalResource {
     return `${subject}${id}`;
   }
 
-  public get isMilestone():boolean {
-    return this.schema.hasOwnProperty('date');
-  }
-
   public get isLeaf():boolean {
     let children = this.$links.children;
     return !(children && children.length > 0);
@@ -192,17 +184,6 @@ export class WorkPackageBaseResource extends HalResource {
     return fieldName === 'description' ? 'full' : 'constrained';
   }
 
-  /**
-   * Return whether the work package is editable with the user's permission
-   * on the given work package attribute.
-   *
-   * @param property
-   */
-  public isAttributeEditable(property:string):boolean {
-    return super.isAttributeEditable(property) &&
-      (!this.isReadonly || property === 'status');
-  }
-
   private performUpload(files:UploadFile[]) {
     let href = '';
 
@@ -217,11 +198,7 @@ export class WorkPackageBaseResource extends HalResource {
 
   public getSchemaName(name:string):string {
     // TODO: check if this is still required
-    if (this.isMilestone && (name === 'startDate' || name === 'dueDate')) {
-      return 'date';
-    } else {
-      return name;
-    }
+    return name;
   }
 
   public isParentOf(otherWorkPackage:WorkPackageResource) {
@@ -256,7 +233,6 @@ export class WorkPackageBaseResource extends HalResource {
    * @param form
    */
   public initializeNewResource(form:FormResource) {
-    this.overriddenSchema = form.schema;
     this.$source.id = 'new';
 
     // Ensure type is set to identify the resource
@@ -293,46 +269,6 @@ export class WorkPackageBaseResource extends HalResource {
    */
   public $linkableKeys():string[] {
     return _.without(super.$linkableKeys(), 'schema');
-  }
-
-  /**
-   * Returns the part of the schema relevant for the provided property.
-   * Will look up the associated schema to do so but if the caller decides so, it will also
-   * look inside a provided schema.
-   *
-   * We use it to support the virtual attribute 'combinedDate' which is the combination of the three
-   * attributes 'startDate', 'dueDate' and 'scheduleManually'. That combination exists only in the front end
-   * and not on the native schema. As a property needs to be writable for us to allow the user editing,
-   * we need to mark the writability positively if any of the combined properties are writable.
-   *
-   * @param property the schema part is desired for
-   * @param schemaOverride a schema overriding the already associated schema.
-   */
-  public propertySchema(property:string, schemaOverride?:SchemaResource) {
-    let schema = schemaOverride || this.schema;
-
-    let propertySchema:IFieldSchema;
-
-    if (property === 'combinedDate') {
-      propertySchema = Object.assign({},
-                                     schema['startDate'],
-                                     { writable: schema['startDate'].writable ||
-                                                          schema['dueDate'].writable ||
-                                                          schema['scheduleManually'].writable });
-    } else if (this.isMilestone && (property === 'startDate' || property === 'dueDate')) {
-      propertySchema = super.propertySchema('date', schemaOverride);
-    } else {
-      propertySchema = super.propertySchema(property, schemaOverride);
-    }
-
-    // We cheat the schema here in that we know the date properties to be writable if the
-    // scheduling mode is set to manually. This avoids having to fetch the form again when switching
-    // scheduling mode.
-    //if (['startDate', 'dueDate', 'date'].includes(property) && this.scheduleManually) {
-    //  propertySchema = Object.assign({}, propertySchema, { writable: true });
-    //}
-
-    return propertySchema;
   }
 
   /**

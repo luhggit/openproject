@@ -73,7 +73,6 @@ export class TimeEntryCreateService {
     let entry = this.halResource.createHalResourceOfType<TimeEntryResource>('TimeEntry', form.payload.$plain());
 
     entry.$links['schema'] = form.schema;
-    entry.overriddenSchema = form.schema;
 
     entry['_type'] = 'TimeEntry';
     entry['id'] = 'new';

@@ -272,7 +272,7 @@ export abstract class EditForm<T extends HalResource = HalResource> {
   private loadFieldSchema(fieldName:string, noWarnings:boolean = false):Promise<IFieldSchema> {
     return new Promise((resolve, reject) => {
       this.loadFormAndCheck(fieldName, noWarnings);
-      const fieldSchema:IFieldSchema = this.change.propertySchema(fieldName);
+      const fieldSchema:IFieldSchema = this.change.schema.ofProperty(fieldName);
 
       if (!fieldSchema) {
         throw new Error();
@@ -293,7 +293,7 @@ export abstract class EditForm<T extends HalResource = HalResource> {
       .getForm()
       .then(() => {
         // Look up whether we're actually editable
-        const fieldSchema = this.change.propertySchema(fieldName);
+        const fieldSchema = this.change.schema.ofProperty(fieldName);
         if (!fieldSchema.writable && !noWarnings) {
           this.halNotification.showEditingBlockedError(fieldSchema.name || fieldName);
           this.closeEditFields([fieldName]);

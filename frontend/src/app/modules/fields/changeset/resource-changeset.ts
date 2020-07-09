@@ -6,6 +6,8 @@ import {input, InputState} from "reactivestates";
 import {IFieldSchema} from "core-app/modules/fields/field.base";
 import {debugLog} from "core-app/helpers/debug_output";
 import {take} from "rxjs/operators";
+import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
+import { Injector } from '@angular/core';
 
 export const PROXY_IDENTIFIER = '__is_changeset_proxy';
 
@@ -35,13 +37,21 @@ export class ResourceChangeset<T extends HalResource|{ [key:string]:unknown; } =
   /** Keep a reference to the original resource */
   protected _pristineResource:T;
 
-  /** The projected resource, which will proxy values from the change set */
+  /** The projected resource, which will proxy values from the changeset */
   public projectedResource:T;
+
+  /** The cache to all the schemas. Used to maintain the schema of the projectedResource which does not stem from a form.
+   * The schema of the form is kept inside the changeset.
+   * */
+  protected schemaCache:SchemaCacheService;
 
   constructor(pristineResource:T,
               public readonly state?:InputState<ResourceChangeset<T>>,
               loadedForm:FormResource|null = null) {
     this.updatePristineResource(pristineResource);
+
+    this.schemaCache = (pristineResource.injector as Injector).get(SchemaCacheService);
+
     if (loadedForm) {
       this.form$.putValue(loadedForm);
     }
@@ -199,7 +209,7 @@ export class ResourceChangeset<T extends HalResource|{ [key:string]:unknown; } =
    * @param key
    */
   public isWritable(key:string):boolean {
-    const fieldSchema = this.propertySchema(key) as IFieldSchema|null;
+    const fieldSchema = this.schema.ofProperty(key) as IFieldSchema|null;
     return !!(fieldSchema && fieldSchema.writable);
   }
 
@@ -220,14 +230,9 @@ export class ResourceChangeset<T extends HalResource|{ [key:string]:unknown; } =
 
   /**
    * Proxy getters to base or changeset.
-   * Special case for schema , which is overridden.
    * @param key
    */
   private proxyGet(key:string) {
-    if (key === 'schema') {
-      return this.schema;
-    }
-
     if (key === '__is_proxy') {
       return true;
     }
@@ -310,11 +315,11 @@ export class ResourceChangeset<T extends HalResource|{ [key:string]:unknown; } =
    * and contains available values.
    */
   public get schema():SchemaResource {
-    return this.form$.getValueOr(this.pristineResource).schema as SchemaResource;
-  }
-
-  public propertySchema(property:string) {
-    return this.schema[property];
+    if (this.form$.hasValue()) {
+      return this.form$.value!.schema;
+    } else {
+      return this.schemaCache.of(this.pristineResource as HalResource);
+    }
   }
 
   /**
@@ -347,7 +352,7 @@ export class ResourceChangeset<T extends HalResource|{ [key:string]:unknown; } =
     }
 
     _.each(this.changeset.all, (val:ChangeItem, key:string) => {
-      const fieldSchema:IFieldSchema|undefined = this.propertySchema(key);
+      const fieldSchema:IFieldSchema|undefined = this.schema.ofProperty(key);
       if (!(typeof (fieldSchema) === 'object' && fieldSchema.writable)) {
         debugLog(`Trying to write ${key} but is not writable in schema`);
         return;
@@ -445,7 +450,7 @@ export class ResourceChangeset<T extends HalResource|{ [key:string]:unknown; } =
    */
   protected setNewDefaults(form:FormResource) {
     _.each(form.payload, (val:unknown, key:string) => {
-      const fieldSchema:IFieldSchema|undefined = this.propertySchema(key);
+      const fieldSchema:IFieldSchema|undefined = this.schema.ofProperty(key);
       if (!(typeof (fieldSchema) === 'object' && fieldSchema.writable)) {
         return;
       }

@@ -32,9 +32,11 @@ import {Injectable} from '@angular/core';
 import {SchemaResource} from 'core-app/modules/hal/resources/schema-resource';
 import {HalResourceService} from 'core-app/modules/hal/services/hal-resource.service';
 import {StateCacheService} from "core-components/states/state-cache.service";
+import {SchemaProxy} from "core-app/modules/hal/schemas/schema-proxy";
+import {WorkPackageSchemaProxy} from "core-app/modules/hal/schemas/work-package-schema-proxy";
 
 @Injectable()
-export class SchemaCacheService extends StateCacheService<SchemaResource>{
+export class SchemaCacheService extends StateCacheService<SchemaResource> {
 
   constructor(readonly states:States,
               readonly halResourceService:HalResourceService) {
@@ -42,15 +44,30 @@ export class SchemaCacheService extends StateCacheService<SchemaResource>{
   }
 
   public state(id:string|HalResource):State<SchemaResource> {
-    let href:string;
+    return super.state(this.stateKey(id));
+  }
 
-    if (id instanceof HalResource) {
-      href = this.getSchemaHref(id);
-    } else {
-      href = id;
+  /**
+   * Returns the schema of the provided resource.
+   * This method assumes the schema is loaded and will fail if it is not.
+   * @deprecated Assuming the schema to be loaded is deprecated. Rely on the states instead.
+   * @param resource The HalResource for which the schema is to be returned
+   * @return The schema for the HalResource
+   */
+  of(resource:HalResource):SchemaResource {
+    let schema = this.state(resource).value;
+
+    if (!schema) {
+      throw `Schema for resource ${resource} was expected to be loaded but isn't.`;
     }
 
-    return super.state(href);
+    if (resource._type === 'WorkPackage') {
+      schema = WorkPackageSchemaProxy.create(schema, resource);
+    } else {
+      schema = SchemaProxy.create(schema, resource);
+    }
+
+    return schema;
   }
 
   public getSchemaHref(resource:HalResource):string {
@@ -89,4 +106,22 @@ export class SchemaCacheService extends StateCacheService<SchemaResource>{
   protected get multiState():MultiInputState<SchemaResource> {
     return this.states.schemas;
   }
+
+  /**
+   * Places the schema in the schema state of the resource.
+   * @param resource The resource for which the schema is to be updated
+   * @param schema
+   */
+  update(resource:HalResource, schema:SchemaResource) {
+    this.multiState.get(this.stateKey(resource)).putValue(schema);
+  }
+
+  private stateKey(id:string|HalResource):string {
+    if (id instanceof HalResource) {
+      return this.getSchemaHref(id);
+    } else {
+      return id;
+    }
+  }
 }
+

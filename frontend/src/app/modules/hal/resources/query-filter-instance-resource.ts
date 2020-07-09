@@ -37,16 +37,6 @@ export class QueryFilterInstanceResource extends HalResource {
   public values:HalResource[]|string[];
   private memoizedCurrentSchemas:{ [key:string]:QueryFilterInstanceSchemaResource } = {};
 
-  /**
-   * Create a copied filter, taking over the manually set schema instance.
-   */
-  public $copy<T extends HalResource = HalResource>():T {
-    let clone = super.$copy<T>() as any;
-    clone.overriddenSchema = this.overriddenSchema;
-
-    return clone;
-  }
-
   public get id():string {
     return this.filter.id;
   }
@@ -63,14 +53,14 @@ export class QueryFilterInstanceResource extends HalResource {
    * Therefore, the schema differs based on the selected operator.
    */
   public get currentSchema():QueryFilterInstanceSchemaResource|null {
-    if (!this.overriddenSchema || !this.operator) {
+    if (!this.operator) {
       return null;
     }
 
     let key = this.operator.href!.toString();
 
     if (this.memoizedCurrentSchemas[key] === undefined) {
-      this.memoizedCurrentSchemas[key] = this.overriddenSchema.resultingSchema(this.operator);
+      this.memoizedCurrentSchemas[key] = this.schemaCache.of(this).resultingSchema(this.operator);
     }
 
     return this.memoizedCurrentSchemas[key];

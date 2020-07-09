@@ -58,6 +58,7 @@ import {ClickPositionMapper} from "core-app/modules/common/set-click-position/se
 import {EditFormComponent} from "core-app/modules/fields/edit/edit-form/edit-form.component";
 import {HalResource} from "core-app/modules/hal/resources/hal-resource";
 import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
 
 @Component({
   selector: 'editable-attribute-field',
@@ -90,6 +91,7 @@ export class EditableAttributeFieldComponent extends UntilDestroyedMixin impleme
               protected opContextMenu:OPContextMenuService,
               protected halEditing:HalResourceEditingService,
               protected wpCacheService:WorkPackageCacheService,
+              protected schemaCache:SchemaCacheService,
               // Get parent field group from injector
               protected editForm:EditFormComponent,
               protected NotificationsService:NotificationsService,
@@ -150,7 +152,7 @@ export class EditableAttributeFieldComponent extends UntilDestroyedMixin impleme
   }
 
   public get isEditable() {
-    return this.resource.isAttributeEditable(this.fieldName);
+    return this.schemaCache.of(this.resource).isAttributeEditable(this.fieldName);
   }
 
   public activateIfEditable(event:JQuery.TriggeredEvent) {

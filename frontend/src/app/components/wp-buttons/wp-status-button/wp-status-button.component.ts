@@ -37,6 +37,7 @@ import {WorkPackageCacheService} from "core-components/work-packages/work-packag
 import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
 import {concatAll} from "rxjs/operators";
 import {combineLatest} from "rxjs";
+import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
 
 @Component({
   selector: 'wp-status-button',
@@ -56,6 +57,7 @@ export class WorkPackageStatusButtonComponent extends UntilDestroyedMixin implem
   constructor(readonly I18n:I18nService,
               readonly cdRef:ChangeDetectorRef,
               readonly wpCacheService:WorkPackageCacheService,
+              readonly schemaCache:SchemaCacheService,
               readonly halEditing:HalResourceEditingService) {
     super();
   }
@@ -101,6 +103,6 @@ export class WorkPackageStatusButtonComponent extends UntilDestroyedMixin implem
   }
 
   public get allowed() {
-    return this.workPackage.isAttributeEditable('status');
+    return this.schemaCache.of(this.workPackage).isAttributeEditable('status');
   }
 }

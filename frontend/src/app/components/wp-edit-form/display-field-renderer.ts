@@ -10,6 +10,8 @@ import {ResourceChangeset} from "core-app/modules/fields/changeset/resource-chan
 import {HalResource} from "core-app/modules/hal/resources/hal-resource";
 import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
 import {CombinedDateDisplayField} from "core-app/modules/fields/display/field-types/combined-date-display.field";
+import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
+import {SchemaResource} from "core-app/modules/hal/resources/schema-resource";
 
 export const editableClassName = '-editable';
 export const requiredClassName = '-required';
@@ -22,6 +24,7 @@ export const cellEmptyPlaceholder = '-';
 export class DisplayFieldRenderer<T extends HalResource = HalResource> {
 
   @InjectField() displayFieldService:DisplayFieldService;
+  @InjectField() schemaCache:SchemaCacheService;
   @InjectField() I18n:I18nService;
 
   /** We cache the previously used fields to avoid reinitialization */
@@ -54,7 +57,8 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
                           placeholder?:string):[DisplayField|null, HTMLSpanElement] {
     const span = document.createElement('span');
     const schemaName = this.getSchemaName(resource, change, name);
-    const fieldSchema = resource.propertySchema(name);
+    const schema = this.schemaCache.of(resource);
+    const fieldSchema = schema.ofProperty(name);
 
     // If the resource does not have that field, return an empty
     // span (e.g., for the table).
@@ -69,7 +73,7 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
     if (title) {
       span.setAttribute('title', title);
     }
-    span.setAttribute('aria-label', this.getAriaLabel(field, resource));
+    span.setAttribute('aria-label', this.getAriaLabel(field, schema));
 
     return [field, span];
   }
@@ -147,7 +151,7 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
     }
   }
 
-  private getAriaLabel(field:DisplayField, resource:T):string {
+  private getAriaLabel(field:DisplayField, schema:SchemaResource):string {
     let titleContent;
     let labelContent = this.getLabelContent(field);
 
@@ -163,7 +167,7 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
       titleContent = labelContent;
     }
 
-    if (field.writable && resource.isAttributeEditable(field.name)) {
+    if (field.writable && schema.isAttributeEditable(field.name)) {
       return this.I18n.t('js.inplace.button_edit', {attribute: `${field.displayName} ${titleContent}`});
     } else {
       return `${field.displayName} ${titleContent}`;

@@ -92,11 +92,7 @@ export class QueryFilterInstanceSchemaResource extends SchemaResource {
       source['values'] = [];
     }
 
-    let newFilter = new QueryFilterInstanceResource(this.injector, source, true, this.halInitializer, 'QueryFilterInstance');
-
-    newFilter.overriddenSchema = this;
-
-    return newFilter;
+    return new QueryFilterInstanceResource(this.injector, source, true, this.halInitializer, 'QueryFilterInstance');
   }
 
   public isValueRequired():boolean {

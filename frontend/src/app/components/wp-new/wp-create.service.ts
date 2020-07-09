@@ -110,7 +110,11 @@ export class WorkPackageCreateService extends UntilDestroyedMixin {
   }
 
   public fromCreateForm(form:FormResource):WorkPackageChangeset {
-    let wp = this.halResourceService.createHalResourceOfType<WorkPackageResource>('WorkPackage', form.payload.$plain());
+    let payload = form.payload.$plain();
+    // maintain the reference to the schema
+    payload['_links']['schema'] = form.schema.baseSchema;
+
+    let wp = this.halResourceService.createHalResourceOfType<WorkPackageResource>('WorkPackage', payload);
     wp.initializeNewResource(form);
 
     const change = this.halEditing.edit<WorkPackageResource, WorkPackageChangeset>(wp, form);

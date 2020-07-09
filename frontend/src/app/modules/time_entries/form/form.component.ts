@@ -90,7 +90,7 @@ export class TimeEntryFormComponent extends UntilDestroyedMixin implements OnIni
     if (field === 'workPackage') {
       return true;
     } else {
-      return this.entry.propertySchema(field).required;
+      return this.entry.schema.ofProperty(field).required;
     }
   }
 
