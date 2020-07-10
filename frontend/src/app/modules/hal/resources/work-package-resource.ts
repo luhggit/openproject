@@ -224,28 +224,6 @@ export class WorkPackageBaseResource extends HalResource {
     return promise;
   }
 
-  /**
-   * Assign values from the form for a newly created work package resource.
-   * @param form
-   */
-  public initializeNewResource(form:FormResource) {
-    this.$source.id = 'new';
-
-    // Ensure type is set to identify the resource
-    this._type = 'WorkPackage';
-
-    // Since the ID will change upon saving, keep track of the WP
-    // with the actual creation date
-    this.__initialized_at = Date.now();
-
-    // Set update link to form
-    this['update'] = this.$links.update = form.$links.self;
-    // Use POST /work_packages for saving link
-    this['updateImmediately'] = this.$links.updateImmediately = (payload) => {
-      return this.workPackageDmService.createWorkPackage(payload);
-    };
-  }
-
   public $initialize(source:any) {
     super.$initialize(source);
 
