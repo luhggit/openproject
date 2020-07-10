@@ -213,5 +213,4 @@ export class EditableAttributeFieldComponent extends UntilDestroyedMixin impleme
     this.render();
     this.deactivate();
   }
-
 }
