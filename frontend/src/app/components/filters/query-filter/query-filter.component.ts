@@ -28,7 +28,6 @@
 
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {WorkPackageFiltersService} from 'core-components/filters/wp-filters/wp-filters.service';
 import {QueryFilterResource} from 'core-app/modules/hal/resources/query-filter-resource';
 import {AngularTrackingHelpers} from 'core-components/angular/tracking-functions';
 import {QueryFilterInstanceResource} from "core-app/modules/hal/resources/query-filter-instance-resource";

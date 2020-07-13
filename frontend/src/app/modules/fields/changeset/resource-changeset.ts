@@ -353,14 +353,14 @@ export class ResourceChangeset<T extends HalResource = HalResource> {
     }
 
     _.each(this.changeset.all, (val:ChangeItem, key:string) => {
-      const fieldSchema:IFieldSchema|undefined = this.schema.ofProperty(key);
-      if (!(typeof (fieldSchema) === 'object' && fieldSchema.writable)) {
+      const fieldSchema:IFieldSchema|null = this.schema.ofProperty(key);
+      if (fieldSchema && !fieldSchema.writable) {
         debugLog(`Trying to write ${key} but is not writable in schema`);
         return;
       }
 
       // Override in _links if it is a linked property
-      if (reference._links[key]) {
+      if (fieldSchema && reference._links[key]) {
         plainPayload._links[key] = this.getLinkedValue(val.to, fieldSchema);
       } else {
         plainPayload[key] = val.to;
@@ -451,8 +451,8 @@ export class ResourceChangeset<T extends HalResource = HalResource> {
    */
   protected setNewDefaults(form:FormResource) {
     _.each(form.payload, (val:unknown, key:string) => {
-      const fieldSchema:IFieldSchema|undefined = this.schema.ofProperty(key);
-      if (!(typeof (fieldSchema) === 'object' && fieldSchema.writable)) {
+      const fieldSchema:IFieldSchema|null = this.schema.ofProperty(key);
+      if (fieldSchema?.writable) {
         return;
       }
 
