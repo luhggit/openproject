@@ -52,7 +52,6 @@ import {EditableAttributeFieldComponent} from "core-app/modules/fields/edit/fiel
 import {ProjectStatusEditFieldComponent} from "core-app/modules/fields/edit/field-types/project-status-edit-field.component";
 import {PlainFormattableEditFieldComponent} from "core-app/modules/fields/edit/field-types/plain-formattable-edit-field.component";
 import {TimeEntryWorkPackageEditFieldComponent} from "core-app/modules/fields/edit/field-types/te-work-package-edit-field.component";
-import {HalResourceEditingService} from "core-app/modules/fields/edit/services/hal-resource-editing.service";
 
 @NgModule({
   imports: [
@@ -79,9 +78,6 @@ import {HalResourceEditingService} from "core-app/modules/fields/edit/services/h
       deps: [DisplayFieldService],
       multi: true
     },
-    // Required for injection of the service in the rails based
-    // views editing time entries.
-    HalResourceEditingService
   ],
   declarations: [
     EditFormPortalComponent,
