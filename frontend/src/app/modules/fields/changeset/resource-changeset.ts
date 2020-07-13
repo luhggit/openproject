@@ -105,14 +105,6 @@ export class ResourceChangeset<T extends HalResource = HalResource> {
     return this._pristineResource;
   }
 
-  public getSchemaName(attribute:string):string {
-    if (this.projectedResource.getSchemaName) {
-      return this.projectedResource.getSchemaName(attribute);
-    } else {
-      return attribute;
-    }
-  }
-
   /**
    * Returns the cached form or loads it if necessary.
    */
@@ -452,7 +444,7 @@ export class ResourceChangeset<T extends HalResource = HalResource> {
   protected setNewDefaults(form:FormResource) {
     _.each(form.payload, (val:unknown, key:string) => {
       const fieldSchema:IFieldSchema|null = this.schema.ofProperty(key);
-      if (fieldSchema?.writable) {
+      if (!fieldSchema?.writable) {
         return;
       }
 

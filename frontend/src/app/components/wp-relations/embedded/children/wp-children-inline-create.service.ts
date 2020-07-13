@@ -81,8 +81,7 @@ export class WpChildrenInlineCreateService extends WorkPackageInlineCreateServic
   }
 
   public get canAddChild() {
-    const wp = this.referenceTarget;
-    return this.schema && !this.schema.isMilestone && wp!.changeParent;
+    return this.schema && !this.schema.isMilestone && this.referenceTarget!.changeParent;
   }
 
   /**
@@ -94,6 +93,6 @@ export class WpChildrenInlineCreateService extends WorkPackageInlineCreateServic
   };
 
   private get schema() {
-    return this.referenceTarget && this.schemaCache.of(this.referenceTarget)
+    return this.referenceTarget && this.schemaCache.of(this.referenceTarget);
   }
 }

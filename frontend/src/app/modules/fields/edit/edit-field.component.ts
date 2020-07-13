@@ -116,7 +116,7 @@ export abstract class EditFieldComponent extends Field implements OnInit, OnDest
   public get name() {
     // Get the mapped schema name, as this is not always the attribute
     // e.g., startDate in table for milestone => date attribute
-    return this.change.getSchemaName(this.handler.fieldName);
+    return this.change.schema.mappedName(this.handler.fieldName);
   }
 
   public set value(value:any) {

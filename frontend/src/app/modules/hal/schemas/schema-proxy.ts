@@ -51,25 +51,23 @@ export class SchemaProxy implements ProxyHandler<SchemaResource> {
   get(schema:SchemaResource, property:PropertyKey, receiver:any):any {
     let self = this;
 
-    if (property === 'ofProperty') {
-      // Returing a Proxy again here so that the call is bound
-      // to the WorkPackageSchemaResource instance.
-      return new Proxy(this.ofProperty, {
-        apply: function(_, __, argumentsList) {
-          return self.ofProperty(argumentsList[0]);
-        }});
-    } else if (property === 'isAttributeEditable') {
-      // Returing a Proxy again here so that the call is bound
-      // to the WorkPackageSchemaResource instance.
-      return new Proxy(this.isAttributeEditable, {
-        apply: function(_, __, argumentsList) {
-          return self.isAttributeEditable(argumentsList[0]);
-        }});
-    } else if (property === 'isEditable') {
-      return self.isEditable;
+    switch (property) {
+      case 'ofProperty': {
+        return this.proxyMethod(this.ofProperty);
+      }
+      case 'isAttributeEditable': {
+        return this.proxyMethod(this.isAttributeEditable);
+      }
+      case 'mappedName': {
+        return this.proxyMethod(this.mappedName);
+      }
+      case 'isEditable': {
+        return this.isEditable;
+      }
+      default: {
+        return Reflect.get(schema, property, receiver);
+      }
     }
-
-    return Reflect.get(schema, property, receiver);
   }
 
   /**
@@ -83,7 +81,7 @@ export class SchemaProxy implements ProxyHandler<SchemaResource> {
    * @param property the schema part is desired for
    */
   public ofProperty(property:string):IFieldSchema|null {
-    let propertySchema = this.schema[property];
+    let propertySchema = this.schema[this.mappedName(property)];
 
     if (propertySchema) {
       return Object.assign({}, propertySchema, { writable: this.isEditable && propertySchema && propertySchema.writable });
@@ -114,5 +112,21 @@ export class SchemaProxy implements ProxyHandler<SchemaResource> {
    */
   public get isEditable() {
     return this.resource.isNew || !!this.resource.$links.update;
+  }
+
+  public mappedName(property:string):string {
+    return property;
+  }
+
+  private proxyMethod(method:Function) {
+    const self = this;
+
+    // Returning a Proxy here so that the call is bound
+    // to the SchemaProxy instance.
+    return new Proxy(method, {
+      apply: function (_, __, argumentsList) {
+        return method.apply(self, [argumentsList[0]]);
+      }
+    });
   }
 }

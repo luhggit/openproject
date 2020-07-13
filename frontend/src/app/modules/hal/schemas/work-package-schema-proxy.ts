@@ -61,8 +61,8 @@ export class WorkPackageSchemaProxy extends SchemaProxy {
         this.isAttributeEditable('scheduleManually');
 
       return propertySchema;
-    } else if (this.isMilestone && (property === 'startDate' || property === 'dueDate')) {
-      return super.ofProperty('date');
+    //} else if (this.isMilestone && (property === 'startDate' || property === 'dueDate')) {
+    //  return super.ofProperty('date');
     } else {
       return super.ofProperty(property);
     }
@@ -85,5 +85,13 @@ export class WorkPackageSchemaProxy extends SchemaProxy {
 
   public get isMilestone():boolean {
     return this.schema.hasOwnProperty('date');
+  }
+
+  public mappedName(property:string):string {
+    if (this.isMilestone && (property === 'startDate' || property === 'dueDate')) {
+      return 'date';
+    } else {
+      return property;
+    }
   }
 }

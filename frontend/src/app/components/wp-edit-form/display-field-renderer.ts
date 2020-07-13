@@ -56,8 +56,8 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
                           change:ResourceChangeset<T>|null,
                           placeholder?:string):[DisplayField|null, HTMLSpanElement] {
     const span = document.createElement('span');
-    const schemaName = this.getSchemaName(resource, change, name);
     const schema = this.schemaCache.of(resource);
+    const attributeName = this.attributeName(name, schema);
     const fieldSchema = schema.ofProperty(name);
 
     // If the resource does not have that field, return an empty
@@ -66,7 +66,7 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
       return [null, span];
     }
 
-    const field = this.getField(resource, fieldSchema, schemaName, change);
+    const field = this.getField(resource, fieldSchema, attributeName, change);
     field.render(span, this.getText(field, fieldSchema, placeholder), fieldSchema.options);
 
     const title = field.title;
@@ -183,23 +183,18 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
   }
 
   /**
-   * Get the schema name from either the changeset, the resource (if available) or
+   * Get the attribute name from either the schema if the mappedName method is implemented or
    * return the attribute itself.
    *
-   * @param resource
-   * @param change
-   * @param name
+   * @param schema
+   * @param attribute
    */
-  private getSchemaName(resource:T, change:ResourceChangeset<T>|null, name:string) {
-    if (change) {
-      return change.getSchemaName(name);
+  private attributeName(attribute:string, schema:SchemaResource) {
+    if (schema.mappedName) {
+      return schema.mappedName(attribute);
+    } else {
+      return attribute;
     }
-
-    if (!!resource.getSchemaName) {
-      return resource.getSchemaName(name);
-    }
-
-    return name;
   }
 
   private getDefaultPlaceholder(fieldSchema:IFieldSchema):string {

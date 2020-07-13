@@ -192,11 +192,6 @@ export class WorkPackageBaseResource extends HalResource {
     return this.opFileUpload.uploadAndMapResponse(href, files);
   }
 
-  public getSchemaName(name:string):string {
-    // TODO: check if this is still required
-    return name;
-  }
-
   public isParentOf(otherWorkPackage:WorkPackageResource) {
     return otherWorkPackage.parent?.$links.self.$link.href === this.$links.self.$link.href;
   }
