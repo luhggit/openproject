@@ -27,8 +27,17 @@
 //++
 
 import {SchemaProxy} from "core-app/modules/hal/schemas/schema-proxy";
+import {SchemaResource} from "core-app/modules/hal/resources/schema-resource";
 
 export class WorkPackageSchemaProxy extends SchemaProxy {
+  get(schema:SchemaResource, property:PropertyKey, receiver:any):any {
+    if (property === 'isMilestone') {
+      return this.isMilestone;
+    } else {
+      return super.get(schema, property, receiver);
+    }
+  }
+
   /**
    * Returns the part of the schema relevant for the provided property.
    *
@@ -75,6 +84,6 @@ export class WorkPackageSchemaProxy extends SchemaProxy {
   }
 
   public get isMilestone():boolean {
-    return this.hasOwnProperty('date');
+    return this.schema.hasOwnProperty('date');
   }
 }
