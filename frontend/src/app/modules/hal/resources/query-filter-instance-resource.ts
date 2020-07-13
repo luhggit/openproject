@@ -75,6 +75,6 @@ export class QueryFilterInstanceResource extends HalResource {
   }
 
   public findOperator(operatorSymbol:string):QueryOperatorResource|undefined {
-    return _.find(this.schema.availableOperators, (operator:QueryOperatorResource) => operator.id === operatorSymbol) as QueryOperatorResource|undefined;
+    return _.find(this.schemaCache.of(this).availableOperators, (operator:QueryOperatorResource) => operator.id === operatorSymbol) as QueryOperatorResource|undefined;
   }
 }
