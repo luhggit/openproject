@@ -6,6 +6,8 @@ import {GridWidgetResource} from "core-app/modules/hal/resources/grid-widget-res
 import {UploadFile} from "core-components/api/op-file-upload/op-file-upload.service";
 import {HalResourceService} from "core-app/modules/hal/services/hal-resource.service";
 import {ResourceChangeset} from "core-app/modules/fields/changeset/resource-changeset";
+import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
+import {SchemaResource} from "core-app/modules/hal/resources/schema-resource";
 
 @Injectable()
 export class CustomTextEditFieldService extends EditFieldHandler {
@@ -20,7 +22,8 @@ export class CustomTextEditFieldService extends EditFieldHandler {
 
   constructor(protected elementRef:ElementRef,
               protected injector:Injector,
-              protected halResource:HalResourceService) {
+              protected halResource:HalResourceService,
+              protected schemaCache:SchemaCacheService) {
     super();
   }
 
@@ -51,7 +54,7 @@ export class CustomTextEditFieldService extends EditFieldHandler {
       withText += '\n';
     }
 
-    this.changeset.setValue('text', { raw: withText });
+    this.changeset.setValue(this.fieldName, { raw: withText });
   }
 
   public get schema():IFieldSchema {
@@ -82,7 +85,7 @@ export class CustomTextEditFieldService extends EditFieldHandler {
   }
 
   public get textValue() {
-    return this.changeset.value('text');
+    return this.changeset.value(this.fieldName);
   }
 
   public handleUserCancel() {
@@ -128,12 +131,31 @@ export class CustomTextEditFieldService extends EditFieldHandler {
    * @param value
    */
   private initializeChangeset(value:GridWidgetResource) {
-    let source = { text: value.options.text,
-                   getEditorTypeFor: () => 'full',
-                   canAddAttachments: value.grid.canAddAttachments,
-                   uploadAttachments: (files:UploadFile[]) => value.grid.uploadAttachments(files) };
+    let schemaHref = 'customtext-schema';
+    let resourceSource = {
+                           text: value.options.text,
+                           getEditorTypeFor: () => 'full',
+                           canAddAttachments: value.grid.canAddAttachments,
+                           uploadAttachments: (files:UploadFile[]) => value.grid.uploadAttachments(files),
+                           _links: {
+                             schema: {
+                               href: schemaHref
+                             }
+                           }
+                         };
 
-    let resource = this.halResource.createHalResource(source, true);
+    let resource = this.halResource.createHalResource(resourceSource, true);
+
+    let schemaSource = {
+      text: this.schema,
+      _links: {
+        self: { href: schemaHref }
+      }
+    };
+
+    let schema = this.halResource.createHalResource(schemaSource, true) as SchemaResource;
+
+    this.schemaCache.update(resource, schema);
 
     this.changeset = new ResourceChangeset(resource);
   }
