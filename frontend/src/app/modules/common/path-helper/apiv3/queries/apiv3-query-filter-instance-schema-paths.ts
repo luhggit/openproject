@@ -26,30 +26,10 @@
 // See docs/COPYRIGHT.rdoc for more details.
 // ++
 
-import {
-  SimpleResource,
-  SimpleResourceCollection
-} from 'core-app/modules/common/path-helper/apiv3/path-resources';
-import {Apiv3QueryPaths} from 'core-app/modules/common/path-helper/apiv3/queries/apiv3-query-paths';
-import {Apiv3QueryFilterInstanceSchemaPaths} from "core-app/modules/common/path-helper/apiv3/queries/apiv3-query-filter-instance-schema-paths";
+import {SimpleResource} from 'core-app/modules/common/path-helper/apiv3/path-resources';
 
-export class Apiv3QueriesPaths extends SimpleResourceCollection<Apiv3QueryPaths> {
-  constructor(basePath:string) {
-    super(basePath, 'queries');
-  }
-
-  // Static paths
-  readonly form = new SimpleResource(this.path, 'form');
-
-  readonly default = new SimpleResource(this.path, 'default');
-
-  // /api/v3/queries/:id
-  public id(id:string|number):Apiv3QueryPaths {
-    return new Apiv3QueryPaths(this.path, id);
-  }
-
-  // /api/v3/queries/filter_instance_schemas/:id
-  public filterInstanceSchema(id:string|number):Apiv3QueryFilterInstanceSchemaPaths {
-    return new Apiv3QueryFilterInstanceSchemaPaths(`${this.path}/filter_instance_schemas`, id);
+export class Apiv3QueryFilterInstanceSchemaPaths extends SimpleResource {
+  constructor(basePath:string, filterName:string|number) {
+    super(basePath, filterName);
   }
 }
