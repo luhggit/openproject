@@ -46,7 +46,7 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
       return span;
     }
 
-    this.setSpanAttributes(span, field, name, resource);
+    this.setSpanAttributes(span, field, name, resource, change);
 
     return span;
   }
@@ -56,7 +56,7 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
                           change:ResourceChangeset<T>|null,
                           placeholder?:string):[DisplayField|null, HTMLSpanElement] {
     const span = document.createElement('span');
-    const schema = this.schemaCache.of(resource);
+    const schema = this.schema(resource, change);
     const attributeName = this.attributeName(name, schema);
     const fieldSchema = schema.ofProperty(name);
 
@@ -128,7 +128,7 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
     }
   }
 
-  private setSpanAttributes(span:HTMLElement, field:DisplayField, name:string, resource:T):void {
+  private setSpanAttributes(span:HTMLElement, field:DisplayField, name:string, resource:T, change:ResourceChangeset<T>|null):void {
     span.classList.add(displayClassName, name);
     span.dataset['fieldName'] = name;
 
@@ -143,7 +143,7 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
       span.classList.add(placeholderClassName);
     }
 
-    if (field.writable) {
+    if (this.schema(resource, change).isAttributeEditable(name)) {
       span.classList.add(editableClassName);
       span.setAttribute('role', 'button');
     } else {
@@ -203,5 +203,9 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
     }
 
     return cellEmptyPlaceholder;
+  }
+
+  private schema(resource:T, change:ResourceChangeset<T>|null) {
+    return !!change ? change.schema : this.schemaCache.of(resource);
   }
 }

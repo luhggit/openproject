@@ -59,6 +59,7 @@ import {EditFormComponent} from "core-app/modules/fields/edit/edit-form/edit-for
 import {HalResource} from "core-app/modules/hal/resources/hal-resource";
 import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
 import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
+import {ISchemaProxy} from "core-app/modules/hal/schemas/schema-proxy";
 
 @Component({
   selector: 'editable-attribute-field',
@@ -152,7 +153,7 @@ export class EditableAttributeFieldComponent extends UntilDestroyedMixin impleme
   }
 
   public get isEditable() {
-    return this.schemaCache.of(this.resource).isAttributeEditable(this.fieldName);
+    return this.schema.isAttributeEditable(this.fieldName);
   }
 
   public activateIfEditable(event:JQuery.TriggeredEvent) {
@@ -212,5 +213,13 @@ export class EditableAttributeFieldComponent extends UntilDestroyedMixin impleme
   public reset() {
     this.render();
     this.deactivate();
+  }
+
+  private get schema() {
+    if (this.halEditing.typedState(this.resource).hasValue()) {
+      return this.halEditing.typedState(this.resource).value!.schema;
+    } else {
+      return this.schemaCache.of(this.resource) as ISchemaProxy;
+    }
   }
 }

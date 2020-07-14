@@ -31,10 +31,16 @@ import {SchemaResource} from "core-app/modules/hal/resources/schema-resource";
 
 export class WorkPackageSchemaProxy extends SchemaProxy {
   get(schema:SchemaResource, property:PropertyKey, receiver:any):any {
-    if (property === 'isMilestone') {
-      return this.isMilestone;
-    } else {
-      return super.get(schema, property, receiver);
+    switch (property) {
+      case 'isMilestone': {
+        return this.isMilestone;
+      }
+      case 'isReadonly': {
+        return this.isReadonly;
+      }
+      default: {
+        return super.get(schema, property, receiver);
+      }
     }
   }
 
@@ -61,8 +67,6 @@ export class WorkPackageSchemaProxy extends SchemaProxy {
         this.isAttributeEditable('scheduleManually');
 
       return propertySchema;
-    //} else if (this.isMilestone && (property === 'startDate' || property === 'dueDate')) {
-    //  return super.ofProperty('date');
     } else {
       return super.ofProperty(property);
     }

@@ -84,7 +84,7 @@ export class WorkPackageStatusButtonComponent extends UntilDestroyedMixin implem
   public get buttonTitle() {
     if (this.schema.isReadonly) {
       return this.text.workPackageReadOnly;
-    } else if (this.workPackage.isEditable && !this.allowed) {
+    } else if (this.schema.isEditable && !this.allowed) {
       return this.text.workPackageStatusBlocked;
     } else {
       return '';
@@ -103,11 +103,19 @@ export class WorkPackageStatusButtonComponent extends UntilDestroyedMixin implem
     return this.workPackage.status;
   }
 
+  public get isReadonly() {
+    return this.schema.isReadonly;
+  }
+
   public get allowed() {
     return this.schema.isAttributeEditable('status');
   }
 
   private get schema() {
-    return this.schemaCache.of(this.workPackage) as ISchemaProxy;
+    if (this.halEditing.typedState(this.workPackage).hasValue()) {
+      return this.halEditing.typedState(this.workPackage).value!.schema;
+    } else {
+      return this.schemaCache.of(this.workPackage) as ISchemaProxy;
+    }
   }
 }

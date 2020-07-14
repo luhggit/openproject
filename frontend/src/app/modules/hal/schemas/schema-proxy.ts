@@ -49,8 +49,6 @@ export class SchemaProxy implements ProxyHandler<SchemaResource> {
   }
 
   get(schema:SchemaResource, property:PropertyKey, receiver:any):any {
-    let self = this;
-
     switch (property) {
       case 'ofProperty': {
         return this.proxyMethod(this.ofProperty);
