@@ -12,6 +12,8 @@ import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
 import {CombinedDateDisplayField} from "core-app/modules/fields/display/field-types/combined-date-display.field";
 import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
 import {SchemaResource} from "core-app/modules/hal/resources/schema-resource";
+import {ISchemaProxy} from "core-app/modules/hal/schemas/schema-proxy";
+import {HalResourceEditingService} from "core-app/modules/fields/edit/services/hal-resource-editing.service";
 
 export const editableClassName = '-editable';
 export const requiredClassName = '-required';
@@ -25,6 +27,7 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
 
   @InjectField() displayFieldService:DisplayFieldService;
   @InjectField() schemaCache:SchemaCacheService;
+  @InjectField() halEditing:HalResourceEditingService;
   @InjectField() I18n:I18nService;
 
   /** We cache the previously used fields to avoid reinitialization */
@@ -206,6 +209,12 @@ export class DisplayFieldRenderer<T extends HalResource = HalResource> {
   }
 
   private schema(resource:T, change:ResourceChangeset<T>|null) {
-    return !!change ? change.schema : this.schemaCache.of(resource);
+    if (!!change) {
+      return change.schema;
+    } else if (this.halEditing.typedState(resource).hasValue()) {
+      return this.halEditing.typedState(resource).value!.schema;
+    } else {
+      return this.schemaCache.of(resource) as ISchemaProxy;
+    }
   }
 }

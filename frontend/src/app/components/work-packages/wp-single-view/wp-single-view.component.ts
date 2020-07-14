@@ -56,6 +56,7 @@ import {BrowserDetector} from "core-app/modules/common/browser/browser-detector.
 import {HalResourceService} from "core-app/modules/hal/services/hal-resource.service";
 import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
 import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
+import {ISchemaProxy} from "core-app/modules/hal/schemas/schema-proxy";
 
 export interface FieldDescriptor {
   name:string;
@@ -406,6 +407,10 @@ export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implemen
   }
 
   private schema(resource:WorkPackageResource) {
-    return this.schemaCache.of(resource);
+    if (this.halEditing.typedState(resource).hasValue()) {
+      return this.halEditing.typedState(this.workPackage).value!.schema;
+    } else {
+      return this.schemaCache.of(resource) as ISchemaProxy;
+    }
   }
 }
