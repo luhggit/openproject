@@ -207,7 +207,7 @@ export class TypeFormConfigurationComponent extends UntilDestroyedMixin implemen
         }
       })
       .then(() => {
-        this.form.find('input#type_attribute_groups').val(JSON.stringify([]));
+        this.form.find('input#type_attribute_groups').val(JSON.stringify([[]]));
 
         // Disable our form handler that updates the attribute groups
         this.form.off('submit.typeformupdater');

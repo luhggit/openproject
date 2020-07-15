@@ -85,7 +85,8 @@ class BaseTypeService
   end
 
   def set_attribute_groups(params)
-    if params[:attribute_groups].empty?
+    # Empty group is the signal to reset all groups
+    if params[:attribute_groups] == [[]]
       type.reset_attribute_groups
     else
       type.attribute_groups = parse_attribute_groups_params(params)
@@ -93,8 +94,6 @@ class BaseTypeService
   end
 
   def parse_attribute_groups_params(params)
-    return if params[:attribute_groups].nil?
-
     transform_attribute_groups(params[:attribute_groups])
   end
 

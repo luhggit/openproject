@@ -153,7 +153,7 @@ module Type::AttributeGroups
   end
 
   def custom_attribute_groups
-    read_attribute(:attribute_groups).presence
+    read_attribute(:attribute_groups)
   end
 
   def default_group_key(key)
